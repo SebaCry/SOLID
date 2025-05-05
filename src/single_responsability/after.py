@@ -82,6 +82,7 @@ class StripePaymentProcessor:
         except StripeError as e:
             print("Payment failed:", e)
             raise e
+        return charge
           
 @dataclass
 class PaymentService:
