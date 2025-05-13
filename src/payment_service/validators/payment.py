@@ -1,5 +1,6 @@
 from payment_service.commons import PaymentData
 
+
 class PaymentDataValidator:
     def validate(self, payment_data: PaymentData):
         if not payment_data.source:

@@ -1,18 +1,23 @@
-import stripe
 import os
 
-from payment_service.commons import CustomerData, PaymentData, PaymentResponse
-from .payment import PaymentProcessorProtocol
-from .recurring import RecurringPaymentProtocol
-from .refunds import RefundPaymentProtocol
-
+import stripe
 from dotenv import load_dotenv
-from stripe.error import StripeError
+from stripe.error import StripeError  # type: ignore
+
+from payment_service.commons import CustomerData, PaymentData, PaymentResponse
+
+from .payment import PaymentProcessorProtocol
+from .recurring import RecurringPaymentProcessorProtocol
+from .refunds import RefundProcessorProtocol
 
 _ = load_dotenv()
 
-class StripePaymentProcessor(PaymentProcessorProtocol, RefundPaymentProtocol, RecurringPaymentProtocol):
-    
+
+class StripePaymentProcessor(
+    PaymentProcessorProtocol,
+    RefundProcessorProtocol,
+    RecurringPaymentProcessorProtocol,
+):
     def process_transaction(
         self, customer_data: CustomerData, payment_data: PaymentData
     ) -> PaymentResponse:
@@ -99,7 +104,9 @@ class StripePaymentProcessor(PaymentProcessorProtocol, RefundPaymentProtocol, Re
                 message=str(e),
             )
 
-    def _get_or_create_customer(self, customer_data: CustomerData) -> stripe.Customer:
+    def _get_or_create_customer(
+        self, customer_data: CustomerData
+    ) -> stripe.Customer:
         """
         Creates a new customer in Stripe or retrieves an existing one.
         """
@@ -126,7 +133,9 @@ class StripePaymentProcessor(PaymentProcessorProtocol, RefundPaymentProtocol, Re
             payment_method.id,
             customer=customer_id,
         )
-        print(f"Payment method {payment_method.id} attached to customer {customer_id}")
+        print(
+            f"Payment method {payment_method.id} attached to customer {customer_id}"
+        )
         return payment_method
 
     def _set_default_payment_method(

@@ -1,7 +1,6 @@
-import uuid
-
 from .payment import PaymentProcessorProtocol
 from payment_service.commons import CustomerData, PaymentData, PaymentResponse
+
 
 class OfflinePaymentProcessor(PaymentProcessorProtocol):
     def process_transaction(
@@ -11,6 +10,6 @@ class OfflinePaymentProcessor(PaymentProcessorProtocol):
         return PaymentResponse(
             status="success",
             amount=payment_data.amount,
-            transaction_id=str(uuid.uuid4()),
+            transaction_id=None,
             message="Offline payment success",
         )

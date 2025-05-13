@@ -1,12 +1,13 @@
 from typing import Protocol
+
 from payment_service.commons import CustomerData, PaymentData, PaymentResponse
 
+
 class PaymentProcessorProtocol(Protocol):
-    """
-    Protocol for processing payments, refunds, and recurring payments.
+    """Protocol for processing payments.
 
     This protocol defines the interface for payment processors. Implementations
-    should provide methods for processing payments, refunds, and setting up recurring payments.
+    should provide methods for processing payments.
     """
 
     def process_transaction(

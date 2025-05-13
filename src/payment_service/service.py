@@ -1,15 +1,16 @@
 from dataclasses import dataclass
 from typing import Optional
 
-from payment_service.processors import PaymentProcessorProtocol
-from payment_service.notifiers import NotifierProtocol
-from payment_service.validators import CustomerValidator
-from payment_service.validators import PaymentDataValidator
-from payment_service.loggers import TransactionLogger
-from payment_service.processors import RecurringPaymentProtocol
-from payment_service.processors import RefundPaymentProtocol
+from .commons import CustomerData, PaymentData, PaymentResponse
+from .loggers import TransactionLogger
+from .notifiers import NotifierProtocol
+from .processors import (
+    PaymentProcessorProtocol,
+    RecurringPaymentProcessorProtocol,
+    RefundProcessorProtocol,
+)
+from .validators import CustomerValidator, PaymentDataValidator
 
-from payment_service.commons import CustomerData, PaymentData
 
 @dataclass
 class PaymentService:
@@ -18,8 +19,12 @@ class PaymentService:
     customer_validator: CustomerValidator
     payment_validator: PaymentDataValidator
     logger: TransactionLogger
-    recurring_processor: Optional[RecurringPaymentProtocol] = None
-    refund_processor: Optional[RefundPaymentProtocol] = None
+    refund_processor: Optional[RefundProcessorProtocol] = None
+    recurring_processor: Optional[RecurringPaymentProcessorProtocol] = None
+
+    def set_notifier(self, notifier: NotifierProtocol):
+        print("Changing the notifier implementation")
+        self.notifier = notifier
 
     def process_transaction(
         self, customer_data: CustomerData, payment_data: PaymentData
@@ -30,7 +35,9 @@ class PaymentService:
             customer_data, payment_data
         )
         self.notifier.send_confirmation(customer_data)
-        self.logger.log_transaction(customer_data, payment_data, payment_response)
+        self.logger.log_transaction(
+            customer_data, payment_data, payment_response
+        )
         return payment_response
 
     def process_refund(self, transaction_id: str):
@@ -40,11 +47,15 @@ class PaymentService:
         self.logger.log_refund(transaction_id, refund_response)
         return refund_response
 
-    def setup_recurring(self, customer_data: CustomerData, payment_data: PaymentData):
+    def setup_recurring(
+        self, customer_data: CustomerData, payment_data: PaymentData
+    ):
         if not self.recurring_processor:
             raise Exception("this processor does not support recurring")
         recurring_response = self.recurring_processor.setup_recurring_payment(
             customer_data, payment_data
         )
-        self.logger.log_transaction(customer_data, payment_data, recurring_response)
+        self.logger.log_transaction(
+            customer_data, payment_data, recurring_response
+        )
         return recurring_response

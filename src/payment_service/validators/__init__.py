@@ -3,5 +3,5 @@ from .payment import PaymentDataValidator
 
 __all__ = [
     "CustomerValidator",
-    "PaymentDataValidator"
+    "PaymentDataValidator",
 ]
