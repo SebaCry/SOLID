@@ -12,9 +12,11 @@ from .processors import (
 from .validators import CustomerValidator, PaymentDataValidator
 from factory import PaymentProcessorFactory
 
+from service_protocol import PaymentServiceProtocol
+
 
 @dataclass
-class PaymentService:
+class PaymentService(PaymentServiceProtocol):
     """
     Servicio principal para procesar pagos con diferentes procesadores de pago.
     

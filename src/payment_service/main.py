@@ -1,11 +1,11 @@
-from loggers import TransactionLogger
-from notifiers import EmailNotifier, NotifierProtocol, SMSNotifier
-from processors import StripePaymentProcessor
-from service import PaymentService
-from validators import CustomerValidator, PaymentDataValidator
+from .loggers import TransactionLogger
+from .notifiers import EmailNotifier, NotifierProtocol, SMSNotifier
+from .processors import StripePaymentProcessor
+from .service import PaymentService
+from .validators import CustomerValidator, PaymentDataValidator
 
-from commons import CustomerData, ContactInfo, PaymentData
-
+from .commons import CustomerData, ContactInfo, PaymentData
+from logging_service import PaymentServiceLogging
 
 def get_email_notifier() -> EmailNotifier:
     return EmailNotifier()
@@ -54,6 +54,9 @@ if __name__ == "__main__":
         payment_validator=payment_data_validator,
         logger=logger,
     )
+
+    loggin_service = PaymentServiceLogging(wrapped=service)
+    loggin_service.process_refund(transaction_id=1234)
 
     # service = PaymentService(
     #     payment_processor=stripe_payment_processor,
