@@ -13,14 +13,17 @@ from .processors import (
     RefundProcessorProtocol,
 )
 from .validators import CustomerValidator, PaymentDataValidator
+from listeners import ListenersManager, AccountAbilityListener
 
 @dataclass
 class PaymentServiceBuilder():
+
     payment_processor: Optional [PaymentProcessorProtocol] = None
     notifier: Optional [NotifierProtocol] = None
     customer_validator: Optional [CustomerValidator] = None
     payment_validator: Optional [PaymentDataValidator] = None
     logger: Optional [TransactionLogger] = None
+    listener: Optional [ListenersManager] = None
     refund_processor: Optional[RefundProcessorProtocol] = None
     recurring_processor: Optional[RecurringPaymentProcessorProtocol] = None
 
@@ -54,6 +57,7 @@ class PaymentServiceBuilder():
                 self.customer_validator,
                 self.payment_validator,
                 self.logger,
+                self.listener   
             ]
         ):
             missing = [
@@ -64,6 +68,7 @@ class PaymentServiceBuilder():
                     ('customer_validator', self.customer_validator),
                     ('payment_validator', self.payment_validator),
                     ('logger', self.logger),
+                    ('listener', self.listener)
                 ]
 
                 if value is None
@@ -76,4 +81,13 @@ class PaymentServiceBuilder():
             customer_validator=self.customer_validator,
             payment_validator=self.payment_validator,
             logger=self.logger,
+            listeners=self.listener
         )
+    
+    def set_list(self):
+        listener = ListenersManager()
+
+        accountability_listener = AccountAbilityListener()
+        listener.subscribe(accountability_listener)
+
+        self.listener = listener

@@ -13,6 +13,7 @@ from .validators import CustomerValidator, PaymentDataValidator
 from factory import PaymentProcessorFactory
 
 from service_protocol import PaymentServiceProtocol
+from listeners import ListenersManager
 
 
 @dataclass
@@ -37,6 +38,7 @@ class PaymentService(PaymentServiceProtocol):
     customer_validator: CustomerValidator
     payment_validator: PaymentDataValidator
     logger: TransactionLogger
+    listeners: ListenersManager
     refund_processor: Optional[RefundProcessorProtocol] = None
     recurring_processor: Optional[RecurringPaymentProcessorProtocol] = None
 
@@ -110,6 +112,10 @@ class PaymentService(PaymentServiceProtocol):
         payment_response = self.payment_processor.process_transaction(
             customer_data, payment_data
         )
+        if payment_response.status == 'succes:':
+            self.listeners.notify_all(f"Pago procesado al: {payment_response.transaction_id}")
+        else:
+            self.listeners.notify_all(f"Pago denegado: {payment_response.message}")
         self.notifier.send_confirmation(customer_data)
         self.logger.log_transaction(
             customer_data, payment_data, payment_response
