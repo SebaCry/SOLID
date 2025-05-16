@@ -52,8 +52,7 @@ if __name__ == "__main__":
     service = (
         builder
         .set_payment_processor(payment_data)
-        .set_customer_validator()
-        .set_payment_validator()
+        .set_chain_of_validations()
         .set_logger()
         .build()
     

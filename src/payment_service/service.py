@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Optional, Self
 
-from .commons import CustomerData, PaymentData, PaymentResponse
+from .commons import CustomerData, PaymentData, PaymentResponse, Request
 from .loggers import TransactionLogger
 from .notifiers import NotifierProtocol
 from .processors import (
@@ -9,7 +9,7 @@ from .processors import (
     RecurringPaymentProcessorProtocol,
     RefundProcessorProtocol,
 )
-from .validators import CustomerValidator, PaymentDataValidator
+from .validators import CustomerValidator, PaymentDataValidator, ChainHandler
 from factory import PaymentProcessorFactory
 
 from service_protocol import PaymentServiceProtocol
@@ -35,8 +35,7 @@ class PaymentService(PaymentServiceProtocol):
     """
     payment_processor: PaymentProcessorProtocol
     notifier: NotifierProtocol
-    customer_validator: CustomerValidator
-    payment_validator: PaymentDataValidator
+    validators = ChainHandler
     logger: TransactionLogger
     listeners: ListenersManager
     refund_processor: Optional[RefundProcessorProtocol] = None
@@ -107,15 +106,24 @@ class PaymentService(PaymentServiceProtocol):
         Returns:
             La respuesta del procesador de pagos
         """
-        self.customer_validator.validate(customer_data)
-        self.payment_validator.validate(payment_data)
+        # self.customer_validator.validate(customer_data)
+        # self.payment_validator.validate(payment_data)
+        try:
+            request = Request(customer_data=customer_data, payment_data=payment_data)
+            self.validators.handle(request)
+        except Exception as e:
+            print(f"Error processing transaction: {e}")
+            raise e
+
         payment_response = self.payment_processor.process_transaction(
             customer_data, payment_data
         )
+
         if payment_response.status == 'succes:':
             self.listeners.notify_all(f"Pago procesado al: {payment_response.transaction_id}")
         else:
             self.listeners.notify_all(f"Pago denegado: {payment_response.message}")
+        
         self.notifier.send_confirmation(customer_data)
         self.logger.log_transaction(
             customer_data, payment_data, payment_response
